@@ -251,19 +251,30 @@ def extract_credentials(profile_text: str) -> list[str]:
     ]
 
 
-def resolve_api_key(user_input_key: str) -> str:
+def secrets_has_api_key() -> bool:
+    """Return True if GEMINI_API_KEY is present and non-empty in st.secrets."""
+    try:
+        return bool(st.secrets.get("GEMINI_API_KEY", "").strip())
+    except Exception:
+        return False
+
+
+def resolve_api_key(sidebar_input: str = "") -> str:
     """
     Resolve the Gemini API key in priority order:
-    1. Key entered in the sidebar input field.
-    2. Key stored in .streamlit/secrets.toml under [secrets] GEMINI_API_KEY.
-    Returns an empty string if neither source yields a valid key.
+    1. st.secrets["GEMINI_API_KEY"] — injected via Streamlit Cloud or secrets.toml.
+    2. Key typed into the sidebar password input field.
+    Returns an empty string if neither source yields a non-empty value.
     """
-    if user_input_key and user_input_key.strip():
-        return user_input_key.strip()
     try:
-        return st.secrets["GEMINI_API_KEY"]
-    except (KeyError, FileNotFoundError):
-        return ""
+        secret_key = st.secrets.get("GEMINI_API_KEY", "").strip()
+        if secret_key:
+            return secret_key
+    except Exception:
+        pass
+    if sidebar_input and sidebar_input.strip():
+        return sidebar_input.strip()
+    return ""
 
 
 def build_rag_prompt(company_profile: str, rfp_text: str) -> str:
@@ -453,22 +464,34 @@ with st.sidebar:
 
     # ── Gemini API Key ──
     st.markdown("**🔑 Gemini API Key**")
-    st.markdown(
-        '<div class="api-key-card">'
-        '<p>Enter your key below, or add it to '
-        '<code>.streamlit/secrets.toml</code> as '
-        '<code>GEMINI_API_KEY = "..."</code></p></div>',
-        unsafe_allow_html=True,
-    )
-    sidebar_api_key_input = st.text_input(
-        label="Gemini API Key",
-        placeholder="AIza...",
-        type="password",
-        label_visibility="collapsed",
-    )
-    st.caption(
-        "🔗 Get a free key at [aistudio.google.com](https://aistudio.google.com/app/apikey)"
-    )
+
+    if secrets_has_api_key():
+        # Key is already injected via Streamlit Cloud secrets — no input needed
+        st.markdown(
+            '<div class="api-key-card" style="border-color:rgba(16,185,129,0.4);'
+            'background:rgba(16,185,129,0.06);">'
+            '<span style="color:#34d399;font-weight:600;">✅ Loaded from Secrets</span>'
+            '<p style="color:#6ee7b7;">GEMINI_API_KEY is configured via '
+            'Streamlit Cloud secrets.</p></div>',
+            unsafe_allow_html=True,
+        )
+        sidebar_api_key_input = ""   # not needed — secrets takes priority
+    else:
+        # No secret found — show secure fallback input field
+        st.markdown(
+            '<div class="api-key-card">'
+            '<p>No key found in secrets. Enter your Gemini API key below:</p></div>',
+            unsafe_allow_html=True,
+        )
+        sidebar_api_key_input = st.text_input(
+            label="Gemini API Key",
+            placeholder="AIza...",
+            type="password",
+            label_visibility="collapsed",
+        )
+        st.caption(
+            "🔗 Get a free key at [aistudio.google.com](https://aistudio.google.com/app/apikey)"
+        )
 
     st.divider()
 
@@ -678,7 +701,9 @@ st.markdown(
 )
 
 active_api_key = resolve_api_key(sidebar_api_key_input)
-btn_disabled   = (uploaded_rfp_file is None) or (not active_api_key)
+
+# Button is disabled ONLY when no RFP is uploaded — key warnings handled post-click
+btn_disabled = uploaded_rfp_file is None
 
 generate_clicked = st.button(
     "✨  Generate Final Proposal with Gemini AI",
@@ -686,18 +711,29 @@ generate_clicked = st.button(
     disabled=btn_disabled,
 )
 
-# Contextual hints below the button
-if uploaded_rfp_file is None and not active_api_key:
-    st.caption("⬆️ Upload an RFP file and enter your Gemini API key to begin.")
-elif uploaded_rfp_file is None:
-    st.caption("⬆️ Upload an RFP file to enable generation.")
+# Contextual hint below button
+if uploaded_rfp_file is None:
+    st.caption("⬆️ Upload an RFP file above to enable this button.")
 elif not active_api_key:
-    st.caption("🔑 Enter your Gemini API key in the sidebar to enable generation.")
+    st.caption("🔑 Add your Gemini API key in the sidebar to generate a proposal.")
 
 
 # ─────────────────────────────────────────────
 # PIPELINE + GEMINI EXECUTION
 # ─────────────────────────────────────────────
+if generate_clicked and rfp_content_text and not active_api_key:
+    # RFP uploaded but no API key — show a clear, actionable warning
+    st.warning(
+        "🔑 **Gemini API key required.** "
+        "Please enter your key in the sidebar, or add it to Streamlit secrets as "
+        "`GEMINI_API_KEY = \"AIza...\"`",
+        icon="⚠️",
+    )
+    st.info(
+        "Get a free key in under 60 seconds at "
+        "[aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)"
+    )
+
 if generate_clicked and rfp_content_text and active_api_key:
 
     st.markdown("#### 🤖 Agent Pipeline — Live Status")
