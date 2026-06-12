@@ -1,0 +1,15 @@
+===================================================================
+REQUEST FOR PROPOSAL (RFP): CLOUD DATA MIGRATION CHALLENGE
+===================================================================
+Issued By: Apex Retail Global
+Project Scope: Migration of core inventory databases from local on-premise hardware to a secure, modern cloud architecture.
+
+Mandatory Vendor Technical Requirements:
+1. The bidding vendor must possess a recognized global cybersecurity certification (e.g., ISO 27001 or equivalent).
+2. The bidding vendor must provide proof of past project success involving database migration performance improvements.
+3. The proposed cloud architecture must detail strict data encryption practices for both data-at-rest and data-in-transit.
+
+Submission Evaluation Rules:
+- Proposals that do not explicitly verify compliance with data security certifications will face immediate disqualification.
+- Bids must confirm an approximate estimated project timeline for completion.
+===================================================================
