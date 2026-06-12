@@ -462,36 +462,22 @@ with st.sidebar:
     st.markdown("## ⚙️ System Configuration")
     st.divider()
 
-    # ── Gemini API Key ──
-    st.markdown("**🔑 Gemini API Key**")
 
     if secrets_has_api_key():
-        # Key is already injected via Streamlit Cloud secrets — no input needed
-        st.markdown(
-            '<div class="api-key-card" style="border-color:rgba(16,185,129,0.4);'
-            'background:rgba(16,185,129,0.06);">'
-            '<span style="color:#34d399;font-weight:600;">✅ Loaded from Secrets</span>'
-            '<p style="color:#6ee7b7;">GEMINI_API_KEY is configured via '
-            'Streamlit Cloud secrets.</p></div>',
-            unsafe_allow_html=True,
-        )
-        sidebar_api_key_input = ""   # not needed — secrets takes priority
+        # Key loaded silently from secrets — no UI shown
+        sidebar_api_key_input = ""
     else:
-        # No secret found — show secure fallback input field
-        st.markdown(
-            '<div class="api-key-card">'
-            '<p>No key found in secrets. Enter your Gemini API key below:</p></div>',
-            unsafe_allow_html=True,
-        )
+        # No secret found — show clean fallback input
         sidebar_api_key_input = st.text_input(
             label="Gemini API Key",
-            placeholder="AIza...",
+            placeholder="Enter Gemini API Key...",
             type="password",
-            label_visibility="collapsed",
+            label_visibility="visible",
         )
         st.caption(
             "🔗 Get a free key at [aistudio.google.com](https://aistudio.google.com/app/apikey)"
         )
+
 
     st.divider()
 
