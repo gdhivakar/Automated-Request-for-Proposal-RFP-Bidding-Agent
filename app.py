@@ -477,38 +477,10 @@ with st.sidebar:
         )
 
 
-    st.divider()
-
-    # ── Knowledge Base Status ──
-    st.markdown("**🗂️ Knowledge Base**")
-    st.markdown(
-        f"{'🟢' if os.path.exists(COMPANY_PROFILE_PATH) else '🔴'} `company_profile.txt`\n\n"
-        f"{'🟢' if os.path.exists(FINAL_PROPOSAL_PATH)  else '🔴'} `final_proposal.md`"
-    )
-
-    st.divider()
-
-    # ── Model Info ──
-    st.markdown("**🤖 AI Backend**")
-    st.markdown(
-        f'<span class="cred-badge">⚡ {GEMINI_MODEL}</span>'
-        f'<span class="cred-badge">🔄 Streaming ON</span>',
-        unsafe_allow_html=True,
-    )
-
-    st.divider()
-    st.markdown("**🔄 Active Agent Pipeline**")
-    # Live-updated slot during generation
+    # ── Hidden slot — written to during live pipeline animation ──
     sidebar_agent_slot = st.empty()
-    idle_html = "".join(
-        f'<div class="agent-step idle"><span>{ic}</span>'
-        f'<span style="color:#475569">{nm}</span></div>'
-        for ic, nm, _ in PIPELINE_STEPS
-    )
-    sidebar_agent_slot.markdown(idle_html, unsafe_allow_html=True)
 
-    st.divider()
-    st.caption(f"Session: {datetime.now().strftime('%d %b %Y, %H:%M')}")
+
 
 
 # ─────────────────────────────────────────────
