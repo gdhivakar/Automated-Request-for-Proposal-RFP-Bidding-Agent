@@ -459,8 +459,6 @@ for _tok in team_size_raw.split():
 # SIDEBAR
 # ─────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## ⚙️ System Configuration")
-    st.divider()
 
 
     if secrets_has_api_key():
