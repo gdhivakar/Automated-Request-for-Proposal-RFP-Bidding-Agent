@@ -11,7 +11,7 @@ st.set_page_config(
     page_title="AI-Powered Enterprise RFP Bidding Agent",
     page_icon="🏢",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ─────────────────────────────────────────────
@@ -456,31 +456,17 @@ for _tok in team_size_raw.split():
 
 
 # ─────────────────────────────────────────────
-# SIDEBAR
+# API KEY + AGENT SLOT (no sidebar)
 # ─────────────────────────────────────────────
-with st.sidebar:
 
+# Absorbs pipeline animation writes silently — keeps backend intact
+class _NullSlot:
+    def markdown(self, *args, **kwargs): pass
 
-    if secrets_has_api_key():
-        # Key loaded silently from secrets — no UI shown
-        sidebar_api_key_input = ""
-    else:
-        # No secret found — show clean fallback input
-        sidebar_api_key_input = st.text_input(
-            label="Gemini API Key",
-            placeholder="Enter Gemini API Key...",
-            type="password",
-            label_visibility="visible",
-        )
-        st.caption(
-            "🔗 Get a free key at [aistudio.google.com](https://aistudio.google.com/app/apikey)"
-        )
+sidebar_agent_slot = _NullSlot()
 
-
-    # ── Hidden slot — written to during live pipeline animation ──
-    sidebar_agent_slot = st.empty()
-
-
+# API key resolved from secrets silently; inline input shown near Generate button
+sidebar_api_key_input = ""
 
 
 # ─────────────────────────────────────────────
@@ -655,6 +641,23 @@ st.markdown(
     "a real AI-generated proposal from Gemini 1.5 Flash directly into the preview below.</p>",
     unsafe_allow_html=True,
 )
+
+# ── Inline API key input — only shown when no secret is configured ──
+if not secrets_has_api_key():
+    col_key, col_cap = st.columns([2, 1], gap="small")
+    with col_key:
+        sidebar_api_key_input = st.text_input(
+            label="🔑 Gemini API Key",
+            placeholder="Enter your API key (AIza...)",
+            type="password",
+        )
+    with col_cap:
+        st.markdown(
+            "<div style='padding-top:1.9rem'>"
+            "<a href='https://aistudio.google.com/app/apikey' target='_blank' "
+            "style='color:#818cf8;font-size:0.8rem;'>🔗 Get a free key</a></div>",
+            unsafe_allow_html=True,
+        )
 
 active_api_key = resolve_api_key(sidebar_api_key_input)
 
